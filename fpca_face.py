@@ -108,22 +108,22 @@ class FPCA_FACE:
         weight = np.array([1 for _ in range(len(self.argvals))])
         B1 = MM(B.T,weight,1)
         Sig = B1 @ B
-        eSig = la.eig(Sig)
-        V = eSig[1]
-        E = eSig[0]
+        esig = la.eig(Sig)
+        V = esig[1]
+        E = esig[0]
         if np.min(E) <= 1e-6:
             E = E + 1e-6
                        
-        Sigi_sqrt = MM(V,1/np.sqrt(E),1) @ V.T
+        sigi_sqrt = MM(V,1/np.sqrt(E),1) @ V.T
         
-        tUPU = Sigi_sqrt @ (P @ Sigi_sqrt)
-        Esig = la.eig(tUPU)
-        U = Esig[1]
-        s = Esig[0]
+        tupu = sigi_sqrt @ (P @ sigi_sqrt)
+        esig = la.eig(tupu)
+        U = esig[1]
+        s = esig[0]
         s[(K+self.p-self.m):(K+self.p)]=0
-        A = B @ Sigi_sqrt @ U
+        A = B @ sigi_sqrt @ U
         Bt = B.T
-        A0 = Sigi_sqrt @ U
+        A0 = sigi_sqrt @ U
         
         Ytilde = (A0.T).dot(Bt.dot(Y.T))
         C_diag = np.sum(Ytilde**2,axis=1)
@@ -147,21 +147,21 @@ class FPCA_FACE:
         # Eigendecompositon of Smoothed Data
         temp = (YS) @ (YS.T/I)
         Eigen = la.eig(temp)
-        Sigma = np.real(Eigen[0]/J)
+        sigma = np.real(Eigen[0]/J)
         A = np.real(Eigen[1])
         
         # Functional Variance Explained
-        d = Sigma[:self.npc]
+        d = sigma[:self.npc]
         fve = d/np.sum(d)
         
         Ypred = Y
         Ytilde = ((A0.T) @ (Bt)) @ (Ypred.T.values)
-        sigmahat2 = np.max(np.mean(np.mean(Y**2)) - np.sum(Sigma),0)
+        sigmahat2 = np.max(np.mean(np.mean(Y**2)) - np.sum(sigma),0)
         Xi = (Ytilde.T) @ (A[:,:self.npc]/np.sqrt(J))
-        Xi = MM(Xi,Sigma[:self.npc]/(Sigma[:self.npc] + sigmahat2/J),option=1)
+        Xi = MM(Xi,sigma[:self.npc]/(sigma[:self.npc] + sigmahat2/J),option=1)
         
         eigenvectors = B @ (A0 @ A[:,:(self.npc)])
-        eigenvalues = Sigma[:self.npc]
+        eigenvalues = sigma[:self.npc]
         Yhat = (A[:,:self.npc]).T @ Ytilde
         Yhat = B @ A0 @ A[:,:self.npc] @ np.diag(eigenvalues/(eigenvalues+sigmahat2/J)) @ Yhat
         Yhat = (Yhat.T + meanY)
