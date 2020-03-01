@@ -1,8 +1,5 @@
 """
-Functional principal component analysis with fast covariance estimation
-
-A fast implementation of the sandwich smoother (Xiao et al., 2013)
-for covariance matrix smoothing.
+Functional principal component analysis with fast covariance estimation via the sandwich smoother (Xiao et al., 2013) for covariance matrix smoothing.
 
 Implemented by Caleb Weaver (cjweave2@ncsu.edu)
 """
