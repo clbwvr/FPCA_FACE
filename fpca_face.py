@@ -74,7 +74,7 @@ class FPCA_FACE:
             meanY = np.mean(Y,axis=0)
             lmfit = LinearRegression().fit(B, meanY)
             meanY = lmfit.predict(B)
-                
+            Y = Y - meanY
         
         def difference_penalty(m,p,K):
             c = [0 for _ in range(m+1)]
