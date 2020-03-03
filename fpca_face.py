@@ -1,5 +1,8 @@
 """
-Functional principal component analysis with fast covariance estimation via the sandwich smoother (Xiao et al., 2013) for covariance matrix smoothing.
+Functional principal component analysis with fast covariance estimation
+
+A fast implementation of the sandwich smoother (Xiao et al., 2013)
+for covariance matrix smoothing.
 
 Implemented by Caleb Weaver (cjweave2@ncsu.edu)
 """
@@ -17,7 +20,7 @@ class FPCA_FACE:
     FACE Algorithm for FPCA.
     
     Inputs
-    - Y: I by J data matrix, functions on rows
+    - Y: I by J data matrix, functions on rowses.
     - argvals: grid of length J
     - knots: number of knots
     - p: degree of b-splines
@@ -75,7 +78,7 @@ class FPCA_FACE:
             lmfit = LinearRegression().fit(B, meanY)
             meanY = lmfit.predict(B)
             Y = Y - meanY
-        
+            
         def difference_penalty(m,p,K):
             c = [0 for _ in range(m+1)]
             for i in range(m+1):
@@ -113,6 +116,8 @@ class FPCA_FACE:
                        
         sigi_sqrt = MM(V,1/np.sqrt(E),1) @ V.T
         
+        print(hd(sigi_sqrt))
+        
         tupu = sigi_sqrt @ (P @ sigi_sqrt)
         esig = la.eig(tupu)
         U = esig[1]
@@ -123,12 +128,12 @@ class FPCA_FACE:
         A0 = sigi_sqrt @ U
         
         Ytilde = (A0.T).dot(Bt.dot(Y.T))
-        C_diag = np.sum(Ytilde**2,axis=1)
+        C_diag = np.sum(np.power(Ytilde,2),axis=1)
        
         # Select smoothing parameters
-        Y_square = np.sum(np.sum(Y**2))
-        Ytilde_square = np.sum(np.sum(Ytilde**2))
-    
+        Y_square = np.sum(np.sum(np.power(Y,2)))
+        Ytilde_square = np.sum(np.sum(np.power(Ytilde,2)))
+        
         def face_gcv(x):
           lam = np.exp(x)
           lam_s = ((lam*s)**2)/((1 + lam*s)**2)
@@ -137,15 +142,18 @@ class FPCA_FACE:
           gcv = gcv/(1-trace/J)**2
           return(gcv)
     
+        
         res = minimize(face_gcv,0)
         lam = np.exp(res.x)
+        print(lam)
+        
         YS = MM(Ytilde,1/(1+lam*s),option=2)
     
         # Eigendecompositon of Smoothed Data
         temp = (YS) @ (YS.T/I)
         Eigen = la.eig(temp)
-        sigma = np.real(Eigen[0]/J)
-        A = np.real(Eigen[1])
+        sigma = Eigen[0]/J
+        A = Eigen[1]
         
         # Functional Variance Explained
         d = sigma[:self.npc]
