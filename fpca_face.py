@@ -116,8 +116,6 @@ class FPCA_FACE:
                        
         sigi_sqrt = MM(V,1/np.sqrt(E),1) @ V.T
         
-        print(hd(sigi_sqrt))
-        
         tupu = sigi_sqrt @ (P @ sigi_sqrt)
         esig = la.eig(tupu)
         U = esig[1]
