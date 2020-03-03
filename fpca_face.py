@@ -17,7 +17,7 @@ class FPCA_FACE:
     FACE Algorithm for FPCA.
     
     Inputs
-    - Y: I by J data matrix, functions on rowses.
+    - Y: I by J data matrix, functions on rows
     - argvals: grid of length J
     - knots: number of knots
     - p: degree of b-splines
