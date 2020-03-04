@@ -1,10 +1,8 @@
 """
-Functional principal component analysis with fast covariance estimation
 
-A fast implementation of the sandwich smoother (Xiao et al., 2013, Xiao et al. 2016)
-for covariance matrix smoothing.
-
+Functional principal component analysis with fast covariance estimation (Xiao et al., 2013, Xiao et al. 2016)
 Implemented by Caleb Weaver (cjweave2@ncsu.edu)
+
 """
 
 import numpy as np
@@ -61,6 +59,15 @@ class FPCA_FACE:
         
         if(self.argvals is None):
             self.argvals = [(j+1)/J-1/2/J for j in range(J)]
+
+        if(self.npc is None):
+            npc = self.knots + self.p
+        else:
+            npc = self.npc
+            
+        if(self.knots + self.p >= J):
+            print("Warning: Too many knots, setting to 35")
+            self.knots = 35
      
         # Get basis for B-spline
         knots =  np.linspace(-self.p,self.knots+self.p,num = self.knots + 1 + 2 * self.p)/self.knots
@@ -145,7 +152,6 @@ class FPCA_FACE:
         
         res = minimize(face_gcv,0)
         lam = np.exp(res.x)
-        
         YS = MM(Ytilde,1/(1+lam*s),option=2)
     
         # Eigendecompositon of Smoothed Data
@@ -155,25 +161,31 @@ class FPCA_FACE:
         A = Eigen[1]
         
         # Functional Variance Explained
-        d = sigma[:self.npc]
+        d = np.abs(sigma[:npc])
         fve = d/np.sum(d)
+        newnpc = 1
+        for i in range(npc):
+            if np.sum(fve[0:(i+1)]) < self.pve:
+                newnpc = newnpc + 1
+        npc = newnpc
+        fve = fve[:npc]
         
         Ypred = Y
         Ytilde = ((A0.T) @ (Bt)) @ (Ypred.T.values)
         sigmahat2 = np.max(np.mean(np.mean(Y**2)) - np.sum(sigma),0)
-        Xi = (Ytilde.T) @ (A[:,:self.npc]/np.sqrt(J))
-        Xi = MM(Xi,sigma[:self.npc]/(sigma[:self.npc] + sigmahat2/J),option=1)
+        Xi = (Ytilde.T) @ (A[:,:npc]/np.sqrt(J))
+        Xi = MM(Xi,sigma[:npc]/(sigma[:npc] + sigmahat2/J),option=1)
         
-        eigenvectors = B @ (A0 @ A[:,:(self.npc)])
-        eigenvalues = sigma[:self.npc]
-        Yhat = (A[:,:self.npc]).T @ Ytilde
-        Yhat = B @ A0 @ A[:,:self.npc] @ np.diag(eigenvalues/(eigenvalues+sigmahat2/J)) @ Yhat
+        eigenvectors = B @ (A0 @ A[:,:(npc)])
+        eigenvalues = sigma[:npc]
+        Yhat = (A[:,:npc]).T @ Ytilde
+        Yhat = B @ A0 @ A[:,:npc] @ np.diag(eigenvalues/(eigenvalues+sigmahat2/J)) @ Yhat
         Yhat = (Yhat.T + meanY)
         
-        scores = np.sqrt(J)*Xi[:,:self.npc]
+        scores = np.sqrt(J)*Xi[:,:npc]
         mu = meanY
-        efunctions = np.real(eigenvectors[:,:self.npc])
-        evalues = np.real(J*eigenvalues[:self.npc])
+        efunctions = np.real(eigenvectors[:,:npc])
+        evalues = np.real(J*eigenvalues[:npc])
         
         self.Yhat = Yhat
         self.scores = scores
