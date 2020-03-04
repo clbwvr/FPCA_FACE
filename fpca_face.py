@@ -1,7 +1,7 @@
 """
 Functional principal component analysis with fast covariance estimation
 
-A fast implementation of the sandwich smoother (Xiao et al., 2013)
+A fast implementation of the sandwich smoother (Xiao et al., 2013, Xiao et al. 2016)
 for covariance matrix smoothing.
 
 Implemented by Caleb Weaver (cjweave2@ncsu.edu)
@@ -25,7 +25,8 @@ class FPCA_FACE:
     - knots: number of knots
     - p: degree of b-splines
     - m: order of difference penalty
-    - npc: number of PCs
+    - npc: number of PCs (maximum number of components)
+    - pve: proportion of variance explained (used to choose number of components)
     - center: flag for setting columns means of Y to zero
     
     Outputs
@@ -36,7 +37,7 @@ class FPCA_FACE:
     - evalues: Eigenvalues
     - fve: Function variance explained by each PC
     """
-    def __init__(self, Y, argvals = None, knots = 35, p = 3, m=2, npc = 10, center = True):
+    def __init__(self, Y, argvals = None, knots = 35, p = 3, m=2, npc = None, pve=0.95, center = True):
         self.Y = Y
         self.argvals = argvals
         self.knots = knots
@@ -48,6 +49,7 @@ class FPCA_FACE:
         self.evalues = None
         self.scores = None
         self.npc = npc
+        self.pve = pve
         self.center = center
         self.fve = None
         
@@ -143,7 +145,6 @@ class FPCA_FACE:
         
         res = minimize(face_gcv,0)
         lam = np.exp(res.x)
-        print(lam)
         
         YS = MM(Ytilde,1/(1+lam*s),option=2)
     
